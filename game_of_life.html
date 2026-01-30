@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of Life Puzzle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .game-area {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 25px);
+            grid-template-rows: repeat(20, 25px);
+            gap: 1px;
+            border: 2px solid #333;
+            background-color: #333;
+            padding: 5px;
+        }
+        
+        .cell {
+            width: 25px;
+            height: 25px;
+            background-color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .cell.alive {
+            background-color: #4CAF50;
+        }
+        
+        .cell.user-alive {
+            background-color: #2196F3;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select, button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .submit-btn {
+            background-color: #2196F3;
+            font-size: 16px;
+            padding: 12px 24px;
+        }
+        
+        .submit-btn:hover {
+            background-color: #1976D2;
+        }
+        
+        .reset-btn {
+            background-color: #ff9800;
+        }
+        
+        .reset-btn:hover {
+            background-color: #f57c00;
+        }
+        
+        .result {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .result.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info h4 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        
+        .survival-input {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .survival-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .generation-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game of Life Puzzle</h1>
+        
+        <div class="info">
+            <h4>How to Play:</h4>
+            <p><strong>Goal:</strong> Predict the stable state of the Game of Life on the right panel.</p>
+            <p><strong>Rules:</strong> Set the birth rule (exact number of neighbors needed) and survival rules (which neighbor counts allow survival).</p>
+            <p><strong>Left Panel:</strong> Shows the evolving Game of Life with your rules.</p>
+            <p><strong>Right Panel:</strong> Click cells to create your prediction of the final stable state.</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="birthRule">Birth Rule (Create):</label>
+                <select id="birthRule">
+                    <option value="1">1 neighbor</option>
+                    <option value="2">2 neighbors</option>
+                    <option value="3" selected>3 neighbors</option>
+                    <option value="4">4 neighbors</option>
+                    <option value="5">5 neighbors</option>
+                    <option value="6">6 neighbors</option>
+                    <option value="7">7 neighbors</option>
+                    <option value="8">8 neighbors</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Survival Rules:</label>
+                <div class="survival-input" id="survivalRules">
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s0" value="0">
+                        <label for="s0">0</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s1" value="1">
+                        <label for="s1">1</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s2" value="2" checked>
+                        <label for="s2">2</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s3" value="3" checked>
+                        <label for="s3">3</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s4" value="4">
+                        <label for="s4">4</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s5" value="5">
+                        <label for="s5">5</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s6" value="6">
+                        <label for="s6">6</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s7" value="7">
+                        <label for="s7">7</label>
+                    </div>
+                    <div class="survival-checkbox">
+                        <input type="checkbox" id="s8" value="8">
+                        <label for="s8">8</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="generateNewPuzzle()" class="reset-btn">New Puzzle</button>
+            <button onclick="stepSimulation()">Step Forward</button>
+            <button onclick="runToStable()">Run to Stable</button>
+        </div>
+        
+        <div class="game-area">
+            <div class="panel">
+                <h3>Game of Life Evolution</h3>
+                <div class="grid" id="leftGrid"></div>
+                <div class="generation-info" id="generationInfo">Generation: 0</div>
+            </div>
+            
+            <div class="panel">
+                <h3>Your Prediction</h3>
+                <div class="grid" id="rightGrid"></div>
+                <button onclick="submitAnswer()" class="submit-btn">Submit Answer</button>
+                <button onclick="clearUserGrid()" class="reset-btn">Clear</button>
+            </div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const ROWS = 20;
+        const COLS = 10;
+        let leftGrid = [];
+        let rightGrid = [];
+        let generation = 0;
+        let isStable = false;
+        let stableState = null;
+        
+        // Initialize grids
+        function initializeGrids() {
+            // Initialize left grid (Game of Life)
+            leftGrid = Array(ROWS).fill().map(() => Array(COLS).fill(false));
+            
+            // Initialize right grid (User input)
+            rightGrid = Array(ROWS).fill().map(() => Array(COLS).fill(false));
+            
+            generation = 0;
+            isStable = false;
+            stableState = null;
+            
+            createGridElements();
+            updateDisplay();
+        }
+        
+        // Create HTML grid elements
+        function createGridElements() {
+            const leftGridElement = document.getElementById('leftGrid');
+            const rightGridElement = document.getElementById('rightGrid');
+            
+            leftGridElement.innerHTML = '';
+            rightGridElement.innerHTML = '';
+            
+            // Create left grid cells
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    leftGridElement.appendChild(cell);
+                }
+            }
+            
+            // Create right grid cells (clickable)
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', () => toggleUserCell(row, col));
+                    rightGridElement.appendChild(cell);
+                }
+            }
+        }
+        
+        // Generate random initial state
+        function generateRandomState() {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    leftGrid[row][col] = Math.random() < 0.3; // 30% chance of being alive
+                }
+            }
+        }
+        
+        // Count living neighbors
+        function countNeighbors(grid, row, col) {
+            let count = 0;
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    if (newRow >= 0 && newRow < ROWS && newCol >= 0 && newCol < COLS) {
+                        if (grid[newRow][newCol]) count++;
+                    }
+                }
+            }
+            return count;
+        }
+        
+        // Get current rules
+        function getCurrentRules() {
+            const birthRule = parseInt(document.getElementById('birthRule').value);
+            const survivalRules = [];
+            
+            for (let i = 0; i <= 8; i++) {
+                if (document.getElementById(`s${i}`).checked) {
+                    survivalRules.push(i);
+                }
+            }
+            
+            return { birthRule, survivalRules };
+        }
+        
+        // Apply Game of Life rules
+        function applyRules(grid) {
+            const { birthRule, survivalRules } = getCurrentRules();
+            const newGrid = Array(ROWS).fill().map(() => Array(COLS).fill(false));
+            
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const neighbors = countNeighbors(grid, row, col);
+                    const isAlive = grid[row][col];
+                    
+                    if (isAlive) {
+                        // Survival rule
+                        newGrid[row][col] = survivalRules.includes(neighbors);
+                    } else {
+                        // Birth rule
+                        newGrid[row][col] = neighbors === birthRule;
+                    }
+                }
+            }
+            
+            return newGrid;
+        }
+        
+        // Check if two grids are identical
+        function gridsEqual(grid1, grid2) {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (grid1[row][col] !== grid2[row][col]) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        // Step simulation forward
+        function stepSimulation() {
+            if (isStable) return;
+            
+            const newGrid = applyRules(leftGrid);
+            
+            // Check if stable (no change)
+            if (gridsEqual(leftGrid, newGrid)) {
+                isStable = true;
+                stableState = newGrid;
+                document.getElementById('generationInfo').textContent = 
+                    `Generation: ${generation} (STABLE)`;
+            } else {
+                leftGrid = newGrid;
+                generation++;
+                document.getElementById('generationInfo').textContent = 
+                    `Generation: ${generation}`;
+            }
+            
+            updateDisplay();
+        }
+        
+        // Run simulation until stable
+        function runToStable() {
+            let maxGenerations = 1000; // Prevent infinite loops
+            let generationCount = 0;
+            
+            while (!isStable && generationCount < maxGenerations) {
+                stepSimulation();
+                generationCount++;
+            }
+            
+            if (generationCount >= maxGenerations) {
+                document.getElementById('generationInfo').textContent = 
+                    `Generation: ${generation} (Max generations reached)`;
+            }
+        }
+        
+        // Toggle user cell
+        function toggleUserCell(row, col) {
+            rightGrid[row][col] = !rightGrid[row][col];
+            updateDisplay();
+        }
+        
+        // Clear user grid
+        function clearUserGrid() {
+            rightGrid = Array(ROWS).fill().map(() => Array(COLS).fill(false));
+            updateDisplay();
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        // Update visual display
+        function updateDisplay() {
+            const leftCells = document.querySelectorAll('#leftGrid .cell');
+            const rightCells = document.querySelectorAll('#rightGrid .cell');
+            
+            // Update left grid display
+            leftCells.forEach((cell, index) => {
+                const row = Math.floor(index / COLS);
+                const col = index % COLS;
+                cell.classList.toggle('alive', leftGrid[row][col]);
+            });
+            
+            // Update right grid display
+            rightCells.forEach((cell, index) => {
+                const row = Math.floor(index / COLS);
+                const col = index % COLS;
+                cell.classList.toggle('user-alive', rightGrid[row][col]);
+            });
+        }
+        
+        // Submit answer
+        function submitAnswer() {
+            if (!isStable) {
+                document.getElementById('result').innerHTML = 
+                    '<div class="result incorrect">Please wait for the simulation to reach a stable state first!</div>';
+                return;
+            }
+            
+            const correct = gridsEqual(rightGrid, stableState);
+            const resultDiv = document.getElementById('result');
+            
+            if (correct) {
+                resultDiv.innerHTML = 
+                    '<div class="result correct">🎉 Correct! You successfully predicted the stable state!</div>';
+            } else {
+                resultDiv.innerHTML = 
+                    '<div class="result incorrect">❌ Incorrect. Try again or generate a new puzzle.</div>';
+            }
+        }
+        
+        // Generate new puzzle
+        function generateNewPuzzle() {
+            generateRandomState();
+            clearUserGrid();
+            generation = 0;
+            isStable = false;
+            stableState = null;
+            document.getElementById('generationInfo').textContent = 'Generation: 0';
+            document.getElementById('result').innerHTML = '';
+            updateDisplay();
+        }
+        
+        // Initialize the game
+        initializeGrids();
+        generateNewPuzzle();
+    </script>
+</body>
+</html>
